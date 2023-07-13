@@ -1,3 +1,4 @@
+#-------------Boilerplate Code Start-----
 import socket
 from tkinter import *
 from  threading import Thread
@@ -44,6 +45,10 @@ winingMessage = None
 
 winingFunctionCall = 0
 
+#-------------Boilerplate Code End-----
+
+
+# Boilerplate Code
 def checkColorPosition(boxes, color):
     for box in boxes:
         boxColor = box.cget("bg")
@@ -51,6 +56,7 @@ def checkColorPosition(boxes, color):
             return boxes.index(box)
     return False
 
+# Teacher Activity
 def movePlayer1(steps):
     global leftBoxes
 
@@ -89,6 +95,48 @@ def movePlayer1(steps):
         leftBoxes[steps].configure(bg='red')
 
 
+# Student Activity
+def movePlayer2(steps):
+    global rightBoxes
+
+    # Moving to reverse order
+    tempBoxes = rightBoxes[-2::-1]
+
+    boxPosition = checkColorPosition(tempBoxes,"yellow")
+
+    if(boxPosition):
+        diceValue = steps
+        coloredBoxIndex = boxPosition
+        totalSteps = 10
+        remainingSteps = totalSteps - coloredBoxIndex
+
+        if(diceValue == remainingSteps):
+            for box in rightBoxes[-2::-1]:
+                box.configure(bg='white')
+
+            global finishingBox
+
+            finishingBox.configure(bg='yellow', fg="black")
+
+            global SERVER
+            global playerName
+
+            greetMessage = f'Yellow wins the game.'
+            SERVER.send(greetMessage.encode())
+
+        elif(diceValue < remainingSteps):
+            for box in rightBoxes[-2::-1]:
+                box.configure(bg='white')
+
+            nextStep = (coloredBoxIndex + 1 ) + diceValue
+            rightBoxes[::-1][nextStep].configure(bg='yellow')
+        else:
+            print("Move False")
+    else:
+        # first step
+        rightBoxes[len(rightBoxes) - (steps+1)].configure(bg='yellow')
+
+
 
 def rollDice():
     global SERVER
@@ -112,43 +160,7 @@ def rollDice():
     if(playerType == 'player2'):
         SERVER.send(f'{value}player1Turn'.encode())
 
-def movePlayer2(steps):
-    global rightBoxes
 
-    tempBoxes=rightBoxes[-2::-1]
-
-    boxPosition = checkColorPosition(tempBoxes,"yellow")
-
-    if(boxPosition):
-        diceValue = steps
-        coloredBoxIndex = boxPosition
-        totalSteps = 10
-        remainingSteps = totalSteps-coloredBoxIndex
-        if(diceValue==remainingSteps):
-            for box in rightBoxes[-2::-1]:
-                box.configure(bg="white")
-            
-            global finishingBox
-
-            finishingBox.configure(bg="yellow", fg="black")
-
-            global SERVER
-            global playerName
-
-            greetMessage=f'yellow wins the game'
-            SERVER.send(greetMessage.encode())
-
-        elif(dice<remainingSteps):
-            for box in rightBoxes[-2::-1]:
-                box.configure(bg="white")
-    
-        nextStep= (coloredBoxIndex + 1) + diceValue
-        rightBoxes[::-1][nextStep].configure(bg="yellow")
-        else:
-            print("Move False")
-    else:
-        # first step
-        rightBoxes[len(rightBoxes) - (steps+1)].configure(bg='yellow')
 
 
 
@@ -229,6 +241,7 @@ def gameWindow():
     # Add Text
     canvas2.create_text( screen_width/2, screen_height/5, text = "Ludo Ladder", font=("Chalkboard SE",100), fill="white")
 
+    # ------------ Boilerplate Code
 
     # Declaring Wining Message
     winingMessage = canvas2.create_text(screen_width/2 + 10, screen_height/2 + 250, text = "", font=("Chalkboard SE",100), fill='#fff176')
@@ -236,6 +249,7 @@ def gameWindow():
     # Creating Reset Button
     resetButton =  Button(gameWindow,text="Reset Game", fg='black', font=("Chalkboard SE", 15), bg="grey",command=restGame, width=20, height=5)
 
+    # ------------ Boilerplate End
 
 
     leftBoard()
@@ -249,7 +263,7 @@ def gameWindow():
     global playerTurn
     global playerType
     global playerName
-   
+    # Additional Activity
     global player1Name
     global player2Name
     global player1Label
@@ -332,7 +346,7 @@ def askPlayerName():
     nameWindow.mainloop()
 
 
-
+#--------- Boilerplate Code Start---------------
 def restGame():
     global SERVER
     SERVER.send("reset game".encode())
@@ -424,7 +438,7 @@ def handleResetGame():
     # Again Recreating Reset Button for next game
     resetButton =  Button(gameWindow,text="Reset Game", fg='black', font=("Chalkboard SE", 15), bg="grey",command=restGame, width=20, height=5)
     winingFunctionCall = 0
-
+#----------------- Boilerplate Code End ---------------
 
 
 def recivedMsg():
@@ -480,7 +494,7 @@ def recivedMsg():
         elif('⚅' in message):
             # Dice with value 6
             canvas2.itemconfigure(dice, text='\u2685')
-       
+        #--------- Boilerplate Code Start--------
         elif('wins the game.' in message and winingFunctionCall == 0):
             winingFunctionCall +=1
             handleWin(message)
@@ -488,7 +502,7 @@ def recivedMsg():
             updateScore(message)
         elif(message == 'reset game'):
             handleResetGame()
-       
+        #--------- Boilerplate Code End--------
 
 
         #creating rollbutton
@@ -503,7 +517,20 @@ def recivedMsg():
             rollButton.place(x=screen_width / 2 - 80, y=screen_height/2  + 260)
 
 
-    
+        # Student Activity
+        # Deciding player turn
+        if('player1Turn' in message or 'player2Turn' in message):
+            diceChoices=['⚀','⚁','⚂','⚃','⚄','⚅']
+            diceValue = diceChoices.index(message[0]) + 1
+
+            if('player2Turn' in message):
+                movePlayer1(diceValue)
+
+
+            if('player1Turn' in message):
+                movePlayer2(diceValue)
+
+        # Additional Activity
         # Creating Name Board
         if(player1Name != 'joining' and canvas2):
             canvas2.itemconfigure(player1Label, text=player1Name)
